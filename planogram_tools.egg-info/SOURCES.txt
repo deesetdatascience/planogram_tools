@@ -1,8 +1,0 @@
-planogram_tools/__init__.py
-planogram_tools/drawing.py
-planogram_tools/matching.py
-planogram_tools/read.py
-planogram_tools.egg-info/PKG-INFO
-planogram_tools.egg-info/SOURCES.txt
-planogram_tools.egg-info/dependency_links.txt
-planogram_tools.egg-info/top_level.txt
