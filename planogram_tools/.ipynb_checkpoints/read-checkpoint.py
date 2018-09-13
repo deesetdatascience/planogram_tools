@@ -1,15 +1,27 @@
+import re
 import cv2 as cv
 import numpy as np
 import openpyxl
 from pathlib import Path
 
+gc_code_re = re.compile(
+    r"([A-Z]{5}$|[0-9]{12}$|[0-9]{7}$|[0-9]{6}$|[0-9]+CMBLACKPEGS$|HOTSPOT$)"
+)
+
 
 def read_excel_planogram(plano_path, product_images_dir=None, cell_w=10, cell_h=10):
     """Reads in an excel planogram file as a python object"""
 
+    # Conver paths to Path objects
+    plano_path = Path(plano_path)
+
     # Load the workbook
     wb = openpyxl.load_workbook(plano_path)
     ws = wb.active
+
+    # Get cell width and height if in excel sheet and not specified
+    if cell_w == cell_h == 10:
+        cell_w = cell_h = ws.cell(1, 1).value
 
     # Find the maximum extent of the planogram
     excel_width, excel_height = ws.max_column, ws.max_row
@@ -44,13 +56,21 @@ def read_excel_planogram(plano_path, product_images_dir=None, cell_w=10, cell_h=
         bounds = merged_cell.bounds
         slot["left"] = (bounds[0]) * cell_w
         slot["top"] = (bounds[1]) * cell_h
-        slot["width"] = (bounds[2] - bounds[0]) * cell_w
-        slot["height"] = (bounds[3] - bounds[1]) * cell_h
+        slot["width"] = (bounds[2] - bounds[0] + 1) * cell_w
+        slot["height"] = (bounds[3] - bounds[1] + 1) * cell_h
 
         # Get the Code that corresponds to the current slot
         contents = ws.cell(bounds[1], bounds[0]).value
         if contents:
-            contents = contents.replace(" ", "")[-5:]
+
+            # Remove any slashes, as we will use this for folder names
+            contents = contents.replace("/", "")
+
+            # Try and extract just the NAV code from the last brackets
+            match = re.match(r"^.*\((.*)\)$", contents)
+            if match:
+                contents = match.group(1)
+
             slot["name"] = contents
 
         # Find an image for the current slot if necessary

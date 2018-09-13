@@ -53,7 +53,12 @@ def draw_planogram(plan, image_out_path=None, show_missing=False, show=True, dpi
             image_path = slot["image_path"]
             # image = feather( imread(image_path) )
             image = cv.imread(str(image_path))[:, :, ::-1]
-            ax.imshow(image, extent=(x1, x1 + w, y1, y1 + h), origin="lower")
+
+            cutoff = int(h / w * image.shape[1])
+            print(cutoff)
+            cropped = image[:-cutoff]
+
+            ax.imshow(cropped, extent=(x1, x1 + w, y1, y1 + h), origin="lower")
         else:
             if show_missing:
                 ax.add_patch(
